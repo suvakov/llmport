@@ -1,0 +1,55 @@
+# llmport: A Guide for Language Models
+
+This document provides a comprehensive overview of the `llmport` library, its design philosophy, and implementation details. It is intended to be read by future Language Models (LLMs) to facilitate understanding, maintenance, and extension of the codebase.
+
+## Core Idea
+
+The fundamental concept behind `llmport` is to bridge the gap between natural language instructions and executable Python code. It allows a developer to "import" a module that doesn't exist yet by providing a prompt describing its desired functionality. `llmport` then uses an LLM to generate the code for that module, saves it as a `.py` file, and loads it into the current session.
+
+This workflow is particularly useful for rapid prototyping and in interactive environments like Python interpreter or Jupyter notebooks. It allows developers to stay within their Python environment to generate code, eliminating the need to switch to external LLM chat tools and then manually copy-paste the code back into their project. This streamlines the development process and reduces context switching.
+
+## Architectural Overview
+
+The library is structured into several key components, each with a distinct responsibility:
+
+1.  **`__init__.py`**: This is the main entry point for the user. It exposes the public API (`llmport`, `update`, `configure`) and orchestrates the interactions between the other components. It handles file system operations, module loading, and logging.
+
+2.  **`config.py`**: This module manages the configuration for the library, such as the LLM provider, API keys, and model names. It follows a layered approach, where settings can be provided via environment variables or programmatically through the `configure()` function. This makes the library flexible and easy to integrate into different environments.
+
+3.  **`base_connector.py`**: This file defines the abstract base class `BaseLLMConnector`. It establishes a common interface that all LLM provider connectors must implement. This ensures consistency and makes it easy to add support for new LLM providers in the future. The key method is `call_llm(prompt)`, which takes a string prompt and returns the raw text response from the LLM.
+
+4.  **`gemini_connector.py` & `openrouter_connector.py`**: These are concrete implementations of the `BaseLLMConnector`. Each one handles the specifics of interacting with a particular LLM provider's API (Google Gemini and OpenRouter, respectively). They are responsible for authentication, request formatting, and response parsing.
+
+5.  **`module_handler.py`**: This component is responsible for the core logic of interacting with the LLM. It takes a user's prompt, formats it into a more detailed prompt suitable for code generation (using templates from `prompt_templates.py`), and then passes this final prompt to the appropriate connector. It also includes a `_clean_response` method to strip markdown formatting (like \`\`\`python) from the LLM's output, ensuring that only valid Python code is written to the file.
+
+6.  **`prompt_templates.py`**: This file contains the prompt templates used by the `ModuleHandler`. These templates are designed to guide the LLM to produce high-quality, production-ready Python code. They instruct the LLM to avoid conversational filler and to return only the raw code.
+
+## Key Implementation Details & Design Choices
+
+-   **Singleton Handler**: The `_get_handler()` function in `__init__.py` implements a singleton pattern for the `ModuleHandler`. This ensures that the handler and its associated LLM connector are initialized only once per session, which is more efficient.
+
+-   **Dynamic Module Loading**: The `_load_module()` function uses Python's `importlib` library to dynamically load a module from a file path. This is crucial for making the generated code immediately available in the user's session.
+
+-   **Real-time, Granular Logging**: The `_log_event()` function allows for logging different stages of the generation process (e.g., "PROMPT", "RESPONSE", "IMPORT ERROR") separately. This provides a clear, real-time view of the library's operations, which is invaluable for debugging.
+
+-   **User-Friendly Error Handling**: The `_load_module` function includes a `try...except ImportError` block. If the LLM generates code that depends on a package the user hasn't installed, this mechanism catches the error and provides a clear, actionable message to the user, improving the overall user experience.
+
+-   **Separation of Concerns**: The architecture is designed to separate concerns clearly. For example, API interaction logic is confined to the connectors, configuration is handled by the config module, and the main orchestration logic resides in `__init__.py`. This makes the codebase easier to understand, modify, and extend.
+
+## How to Update or Extend the Library
+
+-   **Adding a New LLM Provider**:
+    1.  Create a new connector file (e.g., `my_provider_connector.py`).
+    2.  Inside this file, create a class that inherits from `BaseLLMConnector`.
+    3.  Implement the `__init__` and `call_llm` methods according to the provider's API.
+    4.  In `config.py`, add a new entry to the `PROVIDER_CONFIG` dictionary with the necessary configuration details (API key environment variables, default model, etc.).
+    5.  In `__init__.py`, add the new connector class to the `connector_map` dictionary in the `_get_handler` function.
+
+-   **Changing the Prompting Strategy**:
+    1.  Modify the templates in `prompt_templates.py`. This is the central place to adjust how the library instructs the LLM.
+
+-   **Modifying the Core Logic**:
+    1.  The primary logic for handling generation and updates is within the `llmport` and `update` functions in `__init__.py`.
+    2.  The logic for cleaning the LLM response is in `_clean_response` in `module_handler.py`.
+
+By following this guide, you should be well-equipped to understand, maintain, and enhance the `llmport` library.
