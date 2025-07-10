@@ -14,6 +14,9 @@ setup(
         "google-genai",
         "requests",
     ],
+    extras_require={
+        'magic': ['ipython>=8.0.0', 'jupyter']
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

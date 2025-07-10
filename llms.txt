@@ -24,6 +24,8 @@ The library is structured into several key components, each with a distinct resp
 
 6.  **`prompt_templates.py`**: This file contains the prompt templates used by the `ModuleHandler`. These templates are designed to guide the LLM to produce high-quality, production-ready Python code. They instruct the LLM to avoid conversational filler and to return only the raw code.
 
+7.  **`magic.py` (Optional)**: This module provides optional `%%llmport` and `%%llmupdate` magic commands for Jupyter/IPython environments. It is not a core dependency. The `load_ipython_extension` function dynamically registers the cell magics, which capture the cell content as the prompt and the line content as the module name. This is a good example of progressive enhancement, providing extra features for users in specific environments without adding overhead for everyone else. The `%%llmupdate` magic allows for in-place updates of modules directly from a notebook cell, further streamlining the interactive development workflow.
+
 ## Key Implementation Details & Design Choices
 
 -   **Singleton Handler**: The `_get_handler()` function in `__init__.py` implements a singleton pattern for the `ModuleHandler`. This ensures that the handler and its associated LLM connector are initialized only once per session, which is more efficient.

@@ -101,6 +101,68 @@ llmport.configure(
 )
 ```
 
+## Jupyter/IPython Magic Commands (Optional)
+
+For an even more integrated experience in Jupyter notebooks or IPython, you can use the `%%llmport` and `%%llmupdate` magic commands. This allows you to generate and update modules directly in a notebook cell.
+
+To enable this feature, install `llmport` with the `magic` extra:
+```bash
+pip install .[magic]
+```
+
+**Usage:**
+
+Load the extension in your notebook:
+```python
+# In[1]:
+import llmport
+%load_ext llmport.magic
+```
+
+Then, use the `%%llmport` magic command to create a new module:
+```python
+# In[2]:
+%%llmport circle
+Create a function that calculates the area of a circle: area(r).
+```
+```text
+# Out[2]:
+✨ Generating module 'circle'...
+✅ Success! Module 'circle' was generated and imported.
+```
+
+You can use the new module immediately:
+```python
+# In[3]:
+print(circle.area(10))
+```
+```text
+# Out[3]:
+314.1592653589793
+```
+
+Use the `%%llmupdate` magic command to modify the existing module:
+```python
+# In[4]:
+%%llmupdate circle
+Update the circle module to include a function for the circumference of a circle: circumference(r).
+```
+```text
+# Out[4]:
+✨ Updating module 'circle'...
+✅ Success! Module 'circle' was updated and reloaded.
+```
+
+The changes are available instantly:
+```python
+# In[5]:
+print(circle.circumference(10))
+```
+```text
+# Out[5]:
+62.83185307179586
+```
+
 ## Supported LLM APIs
 
 - **Gemini**: Google's family of models.

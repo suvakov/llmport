@@ -131,7 +131,13 @@ def update(module_name: str, prompt: str, stdout: bool = False, log: bool = True
         f.write(cleaned_code)
 
     if module_name in sys.modules:
-        importlib.reload(sys.modules[module_name])
-        return sys.modules[module_name]
+        try:
+            importlib.reload(sys.modules[module_name])
+            return sys.modules[module_name]
+        except ImportError as e:
+            error_message = f"Failed to reload module '{module_name}'. Please ensure all required packages are installed. Details: {e}"
+            _log_event(module_name, "IMPORT ERROR", error_message, stdout, log)
+            print(error_message)
+            return None
     
     return _load_module(module_name, stdout, log)
